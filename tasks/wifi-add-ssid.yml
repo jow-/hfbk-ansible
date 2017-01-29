@@ -1,0 +1,29 @@
+---
+- name: Adding wireless networks
+  with_items: ssids
+  shell: >
+    for i in 0 1 2 3; do
+      [ "$(uci -q get wireless.@wifi-device[$i])" = wifi-device ] || continue;
+
+      radioPhy="$(iwinfo nl80211 phyname @wifi-device[$i] 2>/dev/null)";
+      radioName="$(uci -q -X show wireless.@wifi-device[$i].htmode | cut -d. -f2)";
+
+      case '{{ item.band|default('g') }}' in
+        a) iw phy "$radioPhy" info 2>/dev/null | grep -qE '5... MHz .+ dBm' || continue ;;
+        g) iw phy "$radioPhy" info 2>/dev/null | grep -qE '2... MHz .+ dBm' || continue ;;
+      esac;
+
+      uci delete wireless.@wifi-device[$i].disabled;
+      uci set wireless.@wifi-device[$i].hwmode='11{{ item.band|default('g') }}';
+      uci set wireless.@wifi-device[$i].channel='{{ item.channel }}';
+
+      uci add wireless wifi-iface >/dev/null;
+      uci set wireless.@wifi-iface[-1].device="$radioName";
+      uci set wireless.@wifi-iface[-1].mode='ap';
+      uci set wireless.@wifi-iface[-1].network='lan';
+      uci set wireless.@wifi-iface[-1].ssid='{{ item.ssid|replace("'", "'\"'\"'") }}';
+      uci set wireless.@wifi-iface[-1].encryption='{{ item.encryption|default('none') }}';
+      uci set wireless.@wifi-iface[-1].key='{{ item.key|replace("'", "'\"'\"'") }}';
+    done
+- name: committing changes
+  shell: "uci commit wireless && wifi up"

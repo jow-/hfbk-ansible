@@ -1,0 +1,11 @@
+---
+- name: Shutting down wireless networks
+  shell: wifi down
+- name: Removing wireless configuration
+  file:
+    state: absent
+    path: /etc/config/wireless
+- name: Creating new wireless configuration
+  shell: "wifi detect > /etc/config/wireless; test -s /etc/config/wireless || wifi config"
+- name: Removing default SSIDs
+  shell: "while uci -q delete wireless.@wifi-iface[0]; do :; done"
