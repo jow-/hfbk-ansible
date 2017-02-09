@@ -1,0 +1,64 @@
+# Ansible for LEDE/OpenWrt
+
+Before a device can be used with ansible configuration management,
+it needs to be added to the inventory first.
+
+In order to add a device to the inventory, use the enroll-device.sh
+script which will execute a specialized playbook to turn a vanilla
+LEDE/OpenWrt installation into a managed wireless access point.
+
+Before starting with the enrollment, ensure that the installed
+firmware has the following packages installed:
+
+ - openssh-sftp-server
+ - python
+
+
+## Enroll device
+
+Connect one of the devices LAN ports to your local workstation and
+ensure that your workstations ethernet interface is set to ip address
+192.168.1.2, netmask 255.255.255.0.
+
+Also make sure that your workstation has access to the management VLAN
+in order to regain access to the provisioned unit once it completed
+its base network setup.
+
+One way to achive this is running a tagged + untagged VLAN trunk from
+the central switch to the workstations eth0 and attaching the to-be
+enrolled unit into another tagged + untagged trunk switch port.
+
+Assuming that the management network uses VLAN 10 and provides a DHCP
+server, use the following commands to prepare the environment:
+
+  ip link add eth0.10 link eth0 type vlan id 10
+  ip link set up dev eth0
+  ip addr add 192.168.1.2/24 dev eth0
+  dhclient eth0.10
+
+After verifying that both eth0 and ath0.10 have their address ranges
+configured, the actual enrollment process can be started.
+
+Execute the ./enroll-device.sh script in order to pick up the
+unconfigured LEDE/OpenWrt device at eth0/192.168.1.1 and wait until
+the steps are completed.
+
+If the playbook finished successfully, a device information file
+will be placed into the hosts/ directory, using the DHCPv4 IP address
+as file name.
+
+
+## Configure device
+
+In order to roll out a list of wireless settings onto all enrolled
+devices, use the ./configure-devices.sh script after adjusting the
+network parameters in the "configure.yaml" toplevel playbook.
+
+
+## ToDO
+
+ - Add SSH key management and password setting
+ - Disable unused services
+ - Develop a hostname generation schema
+ - Gather more device info like /tmp/sysinfo/ ids
+ - Move config parameters from playbook into external variable files
