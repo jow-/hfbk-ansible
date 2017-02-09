@@ -6,6 +6,8 @@
     - management:
         vlan: 10
   tasks:
+    - include: tasks/ssh-keys.yml
+    - include: tasks/ssh-password.yml
     - include: tasks/wifi-shutdown.yml
     - include: tasks/wifi-base.yml
     - include: tasks/network-properties.yml

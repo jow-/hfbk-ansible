@@ -1,0 +1,13 @@
+---
+- local_action: shell grep -rsh "ssh-*" keys/
+  register: pubkeys
+
+- name: Importing SSH pubkeys
+  lineinfile:
+    dest: /etc/dropbear/authorized_keys
+    create: yes
+    mode: 0600
+    owner: root
+    group: root
+    line: "{{ item }}"
+  with_items: pubkeys.stdout_lines

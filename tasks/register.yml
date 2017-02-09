@@ -23,3 +23,4 @@
     echo "mac={{ foundMAC.stdout }}"      > hosts/{{ foundIPv4.stdout }};
     echo "ipv4={{ foundIPv4.stdout }}"   >> hosts/{{ foundIPv4.stdout }};
     echo "ipv6ll={{ ansible_ssh_host }}" >> hosts/{{ foundIPv4.stdout }};
+    echo "password={{ password }}"       >> hosts/{{ foundIPv4.stdout }};
