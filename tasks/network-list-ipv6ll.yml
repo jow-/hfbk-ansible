@@ -1,0 +1,4 @@
+---
+- name: Determining IPv6 link local addresses
+  shell: ip -6 addr show | sed -rne 's/^ *inet6 ([a-f0-9:]+ff:fe[a-f0-9:]+).+$/\1/p' | sort -u
+  register: ip6addr

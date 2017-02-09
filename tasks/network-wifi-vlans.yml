@@ -1,0 +1,28 @@
+---
+- name: Adding VLAN interfaces
+  with_indexed_items: ssids
+  when: item.1.vlan > 0
+  shell: >
+    if [ "$(uci -q get network.vlan{{ item.1.vlan }})" != interface ]; then
+      uci -q delete network.vlan{{ item.1.vlan }};
+      uci set network.vlan{{ item.1.vlan }}=interface;
+      uci set network.vlan{{ item.1.vlan }}.proto=none;
+      uci set network.vlan{{ item.1.vlan }}.type=bridge;
+      uci set network.vlan{{ item.1.vlan }}.ifname='{{ upstreamIface.stdout }}.{{ item.1.vlan }}';
+
+      eval "$(jsonfilter -i /etc/board.json -l 1 -e 'switchName=@.switch')";
+      eval "$(jsonfilter -i /etc/board.json -e "switchPorts=@.switch.${switchName:-x}.ports[*].num")";
+
+      if [ -n "$switchName" -a -n "$switchPorts" ]; then
+        uci add network switch_vlan >/dev/null;
+        uci set network.@switch_vlan[-1].device="$switchName";
+        uci set network.@switch_vlan[-1].ports="${switchPorts// /t }t";
+
+        if [ {{ switchMaxVIDs.stdout|default(0) }} -gt 0 ]; then
+          uci set network.@switch_vlan[-1].vlan={{ item.0 + 2 }};
+          uci set network.@switch_vlan[-1].vid={{ item.1.vlan }};
+        else
+          uci set network.@switch_vlan[-1].vlan={{ item.1.vlan }};
+        fi;
+      fi;
+    fi

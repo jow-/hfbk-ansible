@@ -1,0 +1,16 @@
+---
+- hosts: unconfigured-device
+  remote_user: root
+  gather_facts: False
+  vars:
+    - management:
+        vlan: 10
+  tasks:
+    - include: tasks/wifi-shutdown.yml
+    - include: tasks/wifi-base.yml
+    - include: tasks/network-properties.yml
+    - include: tasks/network-base.yml
+    - include: tasks/network-list-ipv6ll.yml
+    - include: tasks/apply.yml
+    - include: tasks/network-discover-ipv6ll.yml
+    - include: tasks/register.yml

@@ -1,0 +1,22 @@
+---
+- name: Probing IPv6 link local addresses
+  local_action: >
+    shell
+    for ll in {{ ip6addr.stdout.split()|join(' ') }}; do
+      for dev in /sys/class/net/*; do
+        if nc6 -z -v -w 5 "${ll}%${dev##*/}" 22; then
+          echo "${ll}%${dev##*/}";
+          exit 0;
+        fi;
+      done;
+    done;
+    exit 1;
+  register: foundIPv6
+
+- name: Switching connection
+  set_fact:
+    ansible_host: "{{ foundIPv6.stdout }}"
+    ansible_ssh_host: "{{ foundIPv6.stdout }}"
+
+- name: Testing connection
+  shell: date

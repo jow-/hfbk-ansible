@@ -1,0 +1,25 @@
+---
+- name: Finding DHCP address
+  shell: ifstatus lan | jsonfilter -e '@["ipv4-address"][0].address'
+  register: foundIPv4
+
+- name: Finding MAC address
+  shell: ifstatus lan | jsonfilter -e '@.device' | xargs devstatus | jsonfilter -e '@.macaddr'
+  register: foundMAC
+
+- name: Registering host
+  when: foundIPv4 is defined and foundIPv4.stdout != ""
+  add_host:
+    name: "{{ foundIPv4.stdout }}"
+    groups: enrolled-devices
+    ipv6ll: "{{ ansible_ssh_host }}"
+    macaddr: "{{ foundMAC.stdout }}"
+
+- name: Writing inventory information
+  when: foundIPv4 is defined and foundIPv4.stdout != ""
+  local_action: >
+    shell
+    mkdir -p hosts/;
+    echo "mac={{ foundMAC.stdout }}"      > hosts/{{ foundIPv4.stdout }};
+    echo "ipv4={{ foundIPv4.stdout }}"   >> hosts/{{ foundIPv4.stdout }};
+    echo "ipv6ll={{ ansible_ssh_host }}" >> hosts/{{ foundIPv4.stdout }};

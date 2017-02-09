@@ -1,0 +1,42 @@
+---
+- name: Setting up base network config
+  shell: >
+    rm /etc/config/network; config_generate;
+
+    uci -q delete network.wan;
+    uci -q delete network.wan6;
+    uci -q delete network.wan_dev;
+
+    uci -q delete network.lan.type;
+    uci -q delete network.lan.ipaddr;
+    uci -q delete network.lan.netmask;
+    uci set network.lan.proto=dhcp;
+
+    if [ {{ management.vlan|default(0) }} -gt 0 ]; then
+      uci set network.lan.ifname="{{ upstreamIface.stdout }}.{{ management.vlan }}";
+    else
+      uci set network.lan.ifname="{{ upstreamIface.stdout }}";
+    fi;
+
+    eval "$(jsonfilter -i /etc/board.json -l 1 -e 'switchName=@.switch')";
+    eval "$(jsonfilter -i /etc/board.json -e "switchPorts=@.switch.${switchName:-x}.ports[*].num")";
+
+    if [ -n "$switchName" -a -n "$switchPorts" ]; then
+      while uci -q delete network.@switch_vlan[0]; do :; done;
+
+      uci add network switch_vlan >/dev/null;
+      uci set network.@switch_vlan[-1].device="$switchName";
+
+      if [ {{ management.vlan|default(0) }} -gt 0 ]; then
+        uci set network.@switch_vlan[-1].ports="${switchPorts// /t }t";
+      else
+        uci set network.@switch_vlan[-1].ports="$switchPorts";
+      fi;
+
+      if [ {{ switchMaxVIDs.stdout|default(0) }} -gt 0 ]; then
+        uci set network.@switch_vlan[-1].vlan=1;
+        uci set network.@switch_vlan[-1].vid={{ management.vlan|default(1) }};
+      else
+        uci set network.@switch_vlan[-1].vlan={{ management.vlan|default(1) }};
+      fi;
+    fi

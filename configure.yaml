@@ -1,0 +1,28 @@
+---
+- hosts: enrolled-devices
+  remote_user: root
+  gather_facts: False
+  vars:
+    - ssids:
+      - band: g
+        ssid: "Example network"
+        channel: 4
+        encryption: psk2
+        key: "a87654321"
+        vlan: 20
+      - band: a
+        ssid: "Example network"
+        channel: 40
+        encryption: psk2
+        key: "a87654321"
+        vlan: 50
+    - management:
+        vlan: 10
+  tasks:
+    - include: tasks/network-properties.yml
+    - include: tasks/network-base.yml
+    - include: tasks/network-wifi-vlans.yml
+    - include: tasks/wifi-shutdown.yml
+    - include: tasks/wifi-base.yml
+    - include: tasks/wifi-ssids.yml
+    - include: tasks/apply.yml

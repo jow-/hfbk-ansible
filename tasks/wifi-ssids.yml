@@ -35,6 +35,3 @@
         uci set wireless.@wifi-iface[-1].network='lan';
       fi;
     done
-
-- name: committing changes
-  shell: "uci commit wireless && wifi up"

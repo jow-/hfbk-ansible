@@ -1,0 +1,12 @@
+---
+- name: Applying changes
+  shell: >
+    uci commit;
+    reload_config;
+    wifi;
+  async: 30
+  poll: 0
+
+- name: Waiting for changes
+  pause:
+    seconds: 5

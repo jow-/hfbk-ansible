@@ -1,0 +1,8 @@
+---
+- name: Finding LAN interface
+  shell: jsonfilter -i /etc/board.json -e '@.network.lan.ifname' | cut -d. -f1
+  register: upstreamIface
+
+- name: Determining switch VLAN ID limit
+  shell: swconfig dev switch0 help | sed -rne 's/^\s+Attribute .+ vid .+\d+-(\d+).+$/\1/p'
+  register: switchMaxVIDs
