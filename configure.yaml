@@ -25,4 +25,5 @@
     - include: tasks/wifi-shutdown.yml
     - include: tasks/wifi-base.yml
     - include: tasks/wifi-ssids.yml
+    - include: tasks/dhcp-ignore.yml
     - include: tasks/apply.yml

@@ -1,0 +1,16 @@
+---
+- name: Disabling DHCP server on management interface
+  shell: >
+    uci -q delete dhcp.lan;
+    uci set dhcp.lan=dhcp;
+    uci set dhcp.lan.ignore=1;
+    uci set dhcp.lan.interface=lan;
+
+- name: Disabling DHCP server on VLAN interfaces
+  with_items: ssids
+  when: item.vlan > 0
+  shell: >
+    uci -q delete dhcp.vlan{{ item.vlan }};
+    uci set dhcp.vlan{{ item.vlan }}=dhcp;
+    uci set dhcp.vlan{{ item.vlan }}.ignore=1;
+    uci set dhcp.vlan{{ item.vlan }}.interface=vlan{{ item.vlan }};
